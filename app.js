@@ -105,8 +105,9 @@ function renderResults(response) {
     // 3a. Render Location
     const loc = response.location;
     if (loc) {
-        document.getElementById('user-location-name').textContent = loc.name;
-        document.getElementById('user-location-coords').textContent = `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
+        document.getElementById('user-location-name').innerHTML = `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Lon: ${loc.lng.toFixed(5)}, Lat: ${loc.lat.toFixed(5)} 🔗</a>`;
+        document.getElementById('user-location-coords').textContent = ""; // Hide the extra coords text
         document.getElementById('user-location-display').style.display = 'block';
     } else {
         document.getElementById('user-location-display').style.display = 'none';
@@ -118,7 +119,11 @@ function renderResults(response) {
         card.className = 'trivia-card';
         
         card.innerHTML = `
-            <div class="poi-name">${item.placeName}</div>
+            <div class="poi-name">
+                <a href="${item.mapsUri}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">
+                    ${item.placeName} 🔗
+                </a>
+            </div>
             <div class="poi-type">${item.placeType}</div>
             <div class="trivia-fact">${item.fact}</div>
         `;

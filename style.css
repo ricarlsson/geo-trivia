@@ -235,6 +235,14 @@ button {
     color: var(--text);
 }
 
+.poi-name a, #user-location-name a {
+    transition: color 0.2s ease;
+}
+
+.poi-name a:hover, #user-location-name a:hover {
+    color: var(--primary) !important;
+}
+
 .poi-type {
     font-size: 0.8rem;
     color: var(--secondary);

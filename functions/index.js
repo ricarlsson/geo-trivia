@@ -23,6 +23,10 @@ exports.getTrivia = onRequest({ invoker: "public", cors: true, secrets: ["MAPS_A
             return;
         }
 
+        // 0. We no longer reverse geocode the location to a place name
+        // as the user requested to just display Coordinates
+        const locationName = `Lon: ${lng.toFixed(5)}, Lat: ${lat.toFixed(5)}`;
+
         // 1. Fetch nearby places from Google Maps API
         const payload = {
             includedTypes: ["tourist_attraction", "museum", "historical_landmark", "park", "church"],
@@ -40,7 +44,7 @@ exports.getTrivia = onRequest({ invoker: "public", cors: true, secrets: ["MAPS_A
             headers: {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': mapsKey,
-                'X-Goog-FieldMask': 'places.displayName,places.primaryType,places.shortFormattedAddress',
+                'X-Goog-FieldMask': 'places.displayName,places.primaryType,places.shortFormattedAddress,places.googleMapsUri',
                 'Referer': 'https://geo-trivia-pocaricky.web.app/'
             },
             body: JSON.stringify(payload)
@@ -57,13 +61,6 @@ exports.getTrivia = onRequest({ invoker: "public", cors: true, secrets: ["MAPS_A
         if (!data.places || data.places.length === 0) {
             res.status(404).send({ error: "No interesting places found nearby." });
             return;
-        }
-
-        // Extract location name from the first found place 
-        let locationName = "Current Location";
-        if (data.places[0] && data.places[0].shortFormattedAddress) {
-            // "shortFormattedAddress" often looks like "Neighborhood, City"
-            locationName = data.places[0].shortFormattedAddress.split(',').pop().trim();
         }
 
         // Pick 5 random places
@@ -104,7 +101,8 @@ exports.getTrivia = onRequest({ invoker: "public", cors: true, secrets: ["MAPS_A
         const results = places.map((place, index) => {
             const placeName = place.displayName?.text || place.placeName;
             const placeType = (place.primaryType || place.placeType || 'place').replace(/_/g, ' ');
-            return { placeName, placeType, fact: factsArray[index] || "No trivia available." };
+            const mapsUri = place.googleMapsUri || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeName)}`;
+            return { placeName, placeType, mapsUri, fact: factsArray[index] || "No trivia available." };
         });
 
         res.status(200).send({ data: results, location: { lat, lng, name: locationName } });
